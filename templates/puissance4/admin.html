@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+</head>
+<body>
+
+<h1>Le Puissance 4 avec le meilleur rapport difficulté / beauté</h1>
+<h2 id = "message"></h2>
+<p> current game id {{current_id}} </p>
+<p> available ids :
+<ul>
+{%for id in ids%}
+  <li><a href="/puissance4/spectate/?id={{id}}">{{id}}</a></li>
+{%endfor%}
+</ul>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+html, body {
+  height: 100%;
+}
+
+.container{
+  width:40%;
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  grid-gap: 5px;
+  
+}
+.container div {
+  background-color: rgba(0,0,0,0.3);
+}
+
+.container div::before {
+  content: "";
+  
+  padding-top: 100%;
+  display: inline-block;
+  vertical-align: top;
+}
+.content{
+	text-align : center;
+	vertical-align : bottom;
+}
+.message{
+	text-align : center;
+}
+.cercle {
+      width: 100%;
+      height: 100%;
+      -webkit-border-radius: 50%;
+      -moz-border-radius:  50%;
+      border-radius:  50%;
+    }
+</style>
+</head>
+<body>
+
+<h1>Le Puissance 4 avec le meilleur rapport difficulté / beauté</h1>
+<h2 id = "message" class="message">Bonjour :)</h2>
+<button type="button" id = "reset">Reset</button>
+<h3 id = "message" >Choix de l'IA</h3>
+<button type="button" id = "aleatoire">Aléatoire</button>
+<button type="button" id = "basique">basique</button>
+<button type="button" id = "simple">pas beaucoup mieux</button>
+<button type="button" id = "dnn">Elle essaie au moins</button>
+<div class = "container" id ="patate">
+	{% for tuple, value in grid %}
+	<div class = "cercle content" id="{{tuple}}"></div>
+	{% endfor %}
+</div>
+{% load static %}
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script src="{% static 'js/app.js' %}"></script>
+
+</body>
+</html>
