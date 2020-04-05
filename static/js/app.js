@@ -1,12 +1,12 @@
 	var fini = false;
-	updateGame = function (data) {
+	const updateGame = function (data) {
 		
 					if(!data['highlight'])
 						data['highlight'] =[]
 					console.log(data['highlight'])
 					fini = data['fini'];
-					for (i = 0; i < 6; i++) {
-						for (j = 0; j < 7; j++) {
+					for (let i = 0; i < 6; i++) {
+						for (let j = 0; j < 7; j++) {
 							var color;
 							var opacity = data['highlight'].includes("("+i.toString()+", "+j.toString()+")")? "1": "0.7";
 							if (data.grid[7*i+j] == 1 ){
@@ -21,7 +21,7 @@
 							document.getElementById(getId(i,j)).style.backgroundColor = color;
 						}
 					}
-					for( i = 0; i < IAs.length; i++)
+					for(let i = 0; i < IAs.length; i++)
 						document.getElementById(IAs[i]).disabled = false;
 					if(data['IA'])
 						document.getElementById(data['IA']).disabled= true;
@@ -42,7 +42,7 @@
 					}
 					
 				};
-	reset = function () {
+	const reset = function () {
 				console.log("reset");
 				$.ajax({
 				url: 'puissance4/ajax/reset/',
@@ -52,7 +52,7 @@
 				success: updateGame
 				});	
 			};
-	waitForComputer =function () {
+	const waitForComputer =function () {
 				console.log("wait for computer");
 				document.getElementById("message").innerHTML = "En attente de l'ordinateur";
 				$.ajax({
@@ -62,8 +62,10 @@
 				dataType: 'json',
 				success: (function(data){updateGame(data);
 						console.log(data['played']);
+						// TODO: why && false ?
 						if (data['played'] && false )
 							document.getElementById(data['played']).style.backgroundColor = "yellow";
+						// TODO: why && false ?
 						if (data['highlight'] && false){
 							var i;
 							for(i = 0; i <data['highlight'].length ; i ++){
@@ -74,37 +76,33 @@
 						console.log(data['score']);
 				})	
 	})};
-	getId = function(i, j){
+	const getId = function(i, j){
 		return "("+String(i)+", "+String(j)+")"
 	};
-	for (i = 0; i < 6; i++) {
-		for (j = 0; j < 7; j++) {
-			document.getElementById(getId(i,j)).onclick = (function () {
-				if (!fini){
-					console.log( this.id );
-					$.ajax({
-					url: 'puissance4/ajax/play/',
-					data: {
-					  'played': this.id 
-					},
-					dataType: 'json',
-					success: (function(data) {
-						updateGame(data);
-						
-						if (!fini){
-							waitForComputer();
-						}
-						else{
-							document.getElementById("message").innerHTML = "La partie est terminée";
-						}
-						})
-					});	
-				}
+	
+	const refresh_grid = function () {
+		if (!fini) {
+			console.log(this.id);
+			$.ajax({
+				url: 'puissance4/ajax/play/',
+				data: {
+					'played': this.id
+				},
+				dataType: 'json',
+				success: (function (data) {
+					updateGame(data);
+					if (!fini) {
+						waitForComputer();
+					}
+					else {
+						document.getElementById("message").innerHTML = "La partie est terminée";
+					}
+				})
 			});
 		}
-	}
-	document.getElementById("reset").onclick= reset;
-	refresh = function(){
+	};
+
+	const refresh = function(){
 		$.ajax({
 					url: 'puissance4/ajax/refresh/',
 					data: {
@@ -116,7 +114,7 @@
 		
 		
 	}
-	chooseIA = function(){
+	const chooseIA = function(){
 		console.log( this.id );
 		$.ajax({
 		url: 'puissance4/ajax/setIA/',
@@ -131,7 +129,7 @@
 				document.getElementById(data['IA']).disabled= true;
 		})
 	})};
-	chooseTurn = function(){
+	const chooseTurn = function(){
 		console.log( this.id );
 		$.ajax({
 		url: 'puissance4/ajax/setTour/',
@@ -148,15 +146,27 @@
 			}
 		})
 	})};
+
+	// *** Initializations ***
+	for (let i = 0; i < 6; i++) {
+		for (let j = 0; j < 7; j++) {
+			document.getElementById(getId(i,j)).onclick = (refresh_grid);
+		}
+	}
+	// Set onClick behavior for active elements
+	// Reset button
+	document.getElementById("reset").onclick= reset;
+	// Grid
+
+	// Globals
 	var IAs =["aleatoire", "basique", "simple", "dnn"]
-	var i;
-	for( i = 0; i < IAs.length; i++)
+	for(let i = 0; i < IAs.length; i++)
 		document.getElementById(IAs[i]).onclick= chooseIA;
 		
 	var OrdreJeu =["premier", "second"]
-	for( i = 0; i < OrdreJeu.length; i++)
+	for(let i = 0; i < OrdreJeu.length; i++)
 		document.getElementById(OrdreJeu[i]).onclick= chooseTurn;
 	
-	// Initialize buttons
-	chooseIA(null);
+	// Display initial IA setting
+	chooseIA();
 	refresh();
