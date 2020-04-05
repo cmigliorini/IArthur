@@ -7,18 +7,17 @@ html, body {
   height: 100%;
 }
 
-.container{
-  width:40%;
+.puiss4{  
   display: grid;
   grid-template-columns: repeat(7,1fr);
   grid-gap: 5px;
   
 }
-.container div {
+.puiss4 div {
   background-color: rgba(0,0,0,0.3);
 }
 
-.container div::before {
+.puiss4 div::before {
   content: "";
   
   padding-top: 100%;
@@ -43,18 +42,41 @@ html, body {
 </head>
 <body>
 
-<h1>Le Puissance 4 avec le meilleur rapport difficulté / beauté</h1>
-<h2 id = "message" class="message">Bonjour :)</h2>
-<button type="button" id = "reset">Reset</button>
-<h3 id = "message" >Choix de l'IA</h3>
-<button type="button" id = "aleatoire">Aléatoire</button>
-<button type="button" id = "basique">basique</button>
-<button type="button" id = "simple">pas beaucoup mieux</button>
-<button type="button" id = "dnn">Elle essaie au moins</button>
-<div class = "container" id ="patate">
-	{% for tuple, value in grid %}
-	<div class = "cercle content" id="{{tuple}}"></div>
-	{% endfor %}
+<div class="jumbotron jumbotron-fluid pt-1 pb-1" >
+  <div class="container-fluid">
+    <h2 class = "">Le Puissance 4 avec le meilleur rapport difficulté / beauté</h2>
+  </div>
+</div>
+<h4 id = "message" class="message">Bonjour :)</h4>
+<div class="row">
+  <div class = "col-lg-3 flex-column text-center container-fluid ">
+
+    <button type="button" class="btn btn-danger " id = "reset">Reinitialisation</button>
+    <h5 id = "message" class ="container p-2" >Choix de l'IA</h5>
+    <div class="btn-group-vertical container-fluid">
+        <button type="button" class="btn btn-primary" id = "aleatoire">Aléatoire</button>
+        <button type="button" class="btn btn-primary" id = "basique">Basique</button>
+        <button type="button" class="btn btn-primary" id = "simple">Pas beaucoup mieux</button>
+        <button type="button" class="btn btn-primary" id = "dnn">Elle essaie au moins</button>
+    </div>
+  </div>
+  <div class = "col-lg-1">
+  </div>
+  <div class = "col-lg-4">
+
+    <div class = "puiss4" id ="puiss4">
+      {% for tuple, value in grid %}
+      <div class = "cercle content" id="{{tuple}}"></div>
+      {% endfor %}
+    </div>
+
+  </div>
+  <div class = "col-lg-1">
+  </div>
+  <div class = "col-lg-3">
+
+
+  </div>
 </div>
 {% load static %}
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>

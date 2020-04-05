@@ -1,10 +1,47 @@
-<html>
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+		<title>Bienvenu</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+	</head>
+	<style>
+		.square:before{
+			content: "";
+			display: block;
+			padding-top: 100%;  /* initial ratio of 1:1*/
+	}
+	</style>
+</html>
 <head>
 </head>
 <body>
-<h1>{{ titre }}</h1>
+<div class="container-fluid p-0">
+	<div class="jumbotron jumbotron-fluid pt-1 pb-1" >
+		<div class="container-fluid">
+			<h2 class = "">{{ titre }}</h2>
+			<p class = "">Bienvenu sur mon site. Il existe principalement pour experimenter des trucs, voir la liste ci-dessous :).</p>
+		</div>
+	</div>
+</div>
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
+<div class="container-fluid p-4">
+	<div class="d-flex flex-wrap bg-light">
+			<div class="card text-center" style="width: 18rem;">
+				<div class="card-body">
+						<h5 class="card-title">Puissance 4</h5>
+						<p class="card-text"></p>
+						<a href="/puissance4/" class="btn btn-primary">Jouer</a>
+				</div>
+			</div>
+			<div class="card text-center" style="width: 18rem;">
+				<div class="card-body">
+						<h5 class="card-title">Transfert de style</h5>
+						<p class="card-text"></p>
+						<a href="#" class="btn btn-primary">Acceder</a>
+				</div>
+			</div>
+	</div>
+</div>
 </body>
 </html>
