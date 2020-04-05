@@ -157,4 +157,6 @@
 	for( i = 0; i < OrdreJeu.length; i++)
 		document.getElementById(OrdreJeu[i]).onclick= chooseTurn;
 	
+	// Initialize buttons
+	chooseIA(null);
 	refresh();
