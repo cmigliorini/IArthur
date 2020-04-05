@@ -8,6 +8,7 @@ urlpatterns = [
     url('ajax/refresh/', views.refresh, name='refresh'),
     url('ajax/waitForComputer/', views.computer_play, name='computer_play'),
     url('ajax/setIA/', views.chooseIA, name='chooseIA'),
+    url('ajax/setTour/', views.setTour, name='setTour'),
     url('admin/', views.admin, name='admin'),
     url('spectate/', views.spectate, name='spectate'),
     url('', views.index, name='index'),

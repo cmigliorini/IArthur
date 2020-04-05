@@ -17,7 +17,10 @@ import torch.nn as nn
 import torch
 import pickle
 
-# Create your views here.
+DEFAULT_IA = "simple"
+DEFAULT_TURN = "premier"
+
+
 class EmulatedGame:
     def __init__(self, load_from):
         self.grid = np.array([[load_from.get(i,j) for j in range(7)] for i in range(6)])
@@ -25,6 +28,7 @@ class EmulatedGame:
         self.fini = False
         self.winner = None
         self.moves=[]
+        self.win_pawns = []
     def turn(self):
         return 1 + (self._turn -1 + len(self.moves))%2
     def copy(self):
@@ -40,6 +44,7 @@ class EmulatedGame:
             self.fini = False
             self.winner = None
             self.grid[row, colonne] = 0
+            self.win_pawns = []
         
     def are_valid(self, i, j):
         return 0<= i <6 and  0<= j <7 
@@ -64,6 +69,7 @@ class EmulatedGame:
             if count >=4:
                 self.fini = True
                 self.winner = joueur
+                self.win_pawns = ensemble[:]
                 return ensemble
         if (self.grid != 0).all():
             self.fini = True
@@ -89,6 +95,34 @@ class EmulatedGame:
         return self.grid.__str__()
     def __repr__(self):
         return self.grid.__repr__()
+    def check_all_win(game):
+        wins = [set(), set()]
+        joueur_2 = set()
+        for i in range(6):
+            for j in range(7):
+                joueur = game.grid[i,j]
+                if joueur != 0:
+                    for xi, xj in [(0,1), (1,1), (1,0), (-1,1)]:
+                        count = 1
+                        offset = 1
+                        ensemble = [(i,j)]
+                        while game.are_valid(i + offset * xi, j + offset * xj) and game.grid[i + offset * xi, j + offset * xj] == joueur:
+                            ensemble.append((i + offset * xi, j + offset * xj))
+                            count +=1
+                            offset +=1
+                        limite_1 = i + offset * xi, j + offset * xj
+                        offset = -1
+                        while game.are_valid(i + offset * xi, j + offset * xj) and game.grid[i + offset * xi, j + offset * xj] == joueur:
+                            ensemble.append((i + offset * xi, j + offset * xj))
+                            count +=1
+                            offset -=1
+                        limite_2 = i + offset * xi, j + offset * xj
+                    
+                        if count >= 4:
+                            for case in ensemble:
+                                wins[joueur-1].add(case)
+        return wins
+
 
     
 def min_max(jeu, evaluation, depth = 3, alpha = float('-inf'), beta = float('inf')):
@@ -200,40 +234,69 @@ def eval_fn(game):
 
 cuda = False
 
+def decide_message(jeu, wins):
+    if len(wins[0]) > 0 and len(wins[1]) > 0:
+        return "Un résultat impossible c'est produit... \nBravo ! Vous avez trouvé un Bug ! Veuillez le signlaer a un administrateur ^^'"
+    elif  len(wins[0]) > 0:
+        return "Le joueur 1 a gagné!"
+    elif  len(wins[1]) > 0:
+        return "Le joueur 2 a gagné!"
+    return "A ton tour !"
 
+def make_new_game(session):
+    game = Game.objects.create()
+    game.save()
+    session['game'] = game.id
+    session['tourJoueur'] = 1 if getFuturTour(session) == "premier" else 2
+    return game
 
-def json_state(game, initial={}):
+def getGame(session):
+    try:
+        game = Game.objects.get(id=session['game'])
+    except (KeyError, Game.DoesNotExist):
+        game = make_new_game(session)
+    return game
+
+def getIA(session):
+    if not 'IA' in session.keys():
+        session['IA'] = DEFAULT_IA
+    return session['IA']
+
+def getFuturTour(session):
+    if not 'futurTour' in session.keys():
+        session['futurTour'] = DEFAULT_TURN
+    return session['futurTour']
+
+def json_state(session):
+    initial = {}    
+    
+    game = getGame(session)
+    initial["tour_de_jeu"] = game.turn
+    initial['tourJoueur']=session['tourJoueur'] #devrait TOUJOURS etre défini apres avoir appelé getGame, sinon, c'est un bug.
     initial['grid'] = [game.get(i,j) for i in range(6) for j in range(7)]
     initial['fini'] = game.fini
+    initial['IA'] = getIA(session)
+    initial['futurTour'] = getFuturTour(session)
+    jeu = EmulatedGame(game)
+    wins = jeu.check_all_win()
+    initial['highlight'] = [str(case) for case in wins[0]] + [str(case) for case in wins[1]]
+    initial['message'] = decide_message(jeu, wins)
     return JsonResponse(initial)  
 
 def index(request):
-    try:
-        game = Game.objects.get(id=request.session['game'])
-    except (KeyError, Game.DoesNotExist):
-        game = Game.objects.create()
-    game.save()
-    request.session['game'] = game.id
-    context = {'grid' : [((i,j), game.get(i,j)) for i in range(6) for j in range(7)] }
+    context = {'grid' : [(i,j) for i in range(6) for j in range(7)] }
     import sys
     print(sys.executable)
     return render(request, 'puissance4/puissance4.html', context)      
     # return HttpResponse(template.render(context, request))
-    
+
+
 def reset(request) :
-    game = Game.objects.create()
-    game.save()
-    request.session['game'] = game.id
-    return json_state(game)
+    make_new_game(request.session)
+    return json_state(request.session)
 
 def refresh(request):
-    try:
-        game = Game.objects.get(id=request.session['game'])
-    except (KeyError, Game.DoesNotExist):
-        game = Game.objects.create()
-    game.save()
-    request.session['game'] = game.id
-    return json_state(game)
+    return json_state(request.session)
     
 def play(request):
     try:
@@ -241,20 +304,25 @@ def play(request):
     except (KeyError, Game.DoesNotExist):
         game = Game.objects.create()
     played= make_tuple(request.GET.get('played', None))
+    d = {}
     if played is not None and not game.fini:
         _, colonne = played
         e = EmulatedGame(game)
-        if e.is_move_possible(colonne) and game.turn ==1:
+        if e.is_move_possible(colonne) and game.turn == request.session['tourJoueur']:
             row = e.row(colonne)
             e.play(colonne)
             game.set(row, colonne, 1)
             game.fini = e.fini
             game.turn = 3- game.turn
             game.save()
+            
+            if e.fini:
+                print([str(tup) for tup in e.check_win((row, colonne))])
+                d['highlight'] = [str(tup) for tup in e.check_win((row, colonne))]
     else:
         print("coup refusé")
         print(game.fini)
-    return json_state(game)
+    return json_state(request.session)
     
 def computer_play(request):
     try:
@@ -281,7 +349,7 @@ def computer_play(request):
         
     e = EmulatedGame(game)
     d = {}
-    if game.turn ==2 and  not game.fini:
+    if game.turn != request.session['tourJoueur'] and  not game.fini:
         temps = 0
         while temps < 1:
             d = time()
@@ -301,7 +369,7 @@ def computer_play(request):
         if e.fini:
             print([str(tup) for tup in e.check_win((row, colonne))])
             d['highlight'] = [str(tup) for tup in e.check_win((row, colonne))]
-    return json_state(game, d)
+    return json_state(request.session)
     
     
 def admin(request):
@@ -322,5 +390,8 @@ def spectate(request):
     
 def chooseIA(request):
     request.session['IA'] = request.GET.get('IA', "dnn")
-    print(request.session['IA'])
-    return JsonResponse({'IA' : request.session['IA']})  
+    return JsonResponse({'IA' : request.session['IA']})
+
+def setTour(request):
+    request.session['futurTour'] = request.GET.get('tour', "premier")
+    return JsonResponse({'futurTour' : request.session['futurTour']})  

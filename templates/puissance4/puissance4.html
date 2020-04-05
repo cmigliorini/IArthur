@@ -47,12 +47,18 @@ html, body {
     <h2 class = "">Le Puissance 4 avec le meilleur rapport difficulté / beauté</h2>
   </div>
 </div>
-<h4 id = "message" class="message">Bonjour :)</h4>
 <div class="row">
   <div class = "col-lg-3 flex-column text-center container-fluid ">
 
     <button type="button" class="btn btn-danger " id = "reset">Reinitialisation</button>
-    <h5 id = "message" class ="container p-2" >Choix de l'IA</h5>
+    <h5 class ="container p-2" >Choix du tour de jeu</h5>
+    <p id ="current color"> </p>
+    <div class="btn-group container-fluid">
+        <button type="button" class="btn btn-primary container-fluid" id = "premier">Premier</button>
+        <button type="button" class="btn btn-primary container-fluid" id = "second">Second</button>
+    </div>
+    <p id ="futurTour"> </p>
+    <h5  class ="container p-2" >Choix de l'IA</h5>
     <div class="btn-group-vertical container-fluid">
         <button type="button" class="btn btn-primary" id = "aleatoire">Aléatoire</button>
         <button type="button" class="btn btn-primary" id = "basique">Basique</button>
@@ -62,14 +68,15 @@ html, body {
   </div>
   <div class = "col-lg-1">
   </div>
-  <div class = "col-lg-4">
-
-    <div class = "puiss4" id ="puiss4">
-      {% for tuple, value in grid %}
-      <div class = "cercle content" id="{{tuple}}"></div>
-      {% endfor %}
+  <div class = "col-lg-4 ">
+    <h4 id = "message" class="message">Bonjour :)</h4>
+    <div class ="bg-dark p-3 text-light">
+      <div class = "puiss4" id ="puiss4">
+        {% for tuple in grid %}
+        <div class = "cercle content" id="{{tuple}}"></div>
+        {% endfor %}
+      </div>
     </div>
-
   </div>
   <div class = "col-lg-1">
   </div>

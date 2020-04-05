@@ -1,17 +1,22 @@
 	var fini = false;
 	updateGame = function (data) {
+		
+					if(!data['highlight'])
+						data['highlight'] =[]
+					console.log(data['highlight'])
 					fini = data['fini'];
 					for (i = 0; i < 6; i++) {
 						for (j = 0; j < 7; j++) {
 							var color;
+							var opacity = data['highlight'].includes("("+i.toString()+", "+j.toString()+")")? "1": "0.7";
 							if (data.grid[7*i+j] == 1 ){
-								color = "yellow";
+								color = "rgb(255,255,0,"+opacity+")";
 							}
 							else if (data.grid[7*i+j] == 2 ){
-								color = "red";
+								color = "rgb(255,  0,0,"+opacity+")";
 							}
 							else{
-								color = "rgba(0,0,0,0.3)";
+								color = "rgb(255,255,255)";
 							}
 							document.getElementById(getId(i,j)).style.backgroundColor = color;
 						}
@@ -20,6 +25,22 @@
 						document.getElementById(IAs[i]).disabled = false;
 					if(data['IA'])
 						document.getElementById(data['IA']).disabled= true;
+					if(data['message'])
+						document.getElementById("message").innerHTML = data['message'];
+						
+					for( i = 0; i < OrdreJeu.length; i++)
+						document.getElementById(OrdreJeu[i]).disabled = false;
+					if(data['futurTour']){
+						document.getElementById(data['futurTour']).disabled= true;
+						document.getElementById('futurTour').innerHTML= "A la prochaine partie vous jouerais en <span class='font-weight-bold'>" + data['futurTour'] +"</span>"; 
+					}
+					if(data['tourJoueur']){
+						document.getElementById("current color").innerHTML= "Pour cette partie, vous jouez les pions <span class='font-weight-bold'>" + (data['tourJoueur'] ==  1? "jaunes" : "rouges") +"</span>"; 
+						if(data['tour_de_jeu'])
+							if (data['tourJoueur'] != data['tour_de_jeu'])
+								waitForComputer();
+					}
+					
 				};
 	reset = function () {
 				console.log("reset");
@@ -33,16 +54,13 @@
 			};
 	waitForComputer =function () {
 				console.log("wait for computer");
+				document.getElementById("message").innerHTML = "En attente de l'ordinateur";
 				$.ajax({
 				url: 'puissance4/ajax/waitForComputer/',
 				data: {
 				},
 				dataType: 'json',
 				success: (function(data){updateGame(data);
-						if (!fini)
-							document.getElementById("message").innerHTML = "Je viens de jouer";
-						else 
-							document.getElementById("message").innerHTML = "La partie est terminée";
 						console.log(data['played']);
 						if (data['played'] && false )
 							document.getElementById(data['played']).style.backgroundColor = "yellow";
@@ -73,7 +91,7 @@
 					success: (function(data) {
 						updateGame(data);
 						
-						if (!fini){document.getElementById("message").innerHTML = "En attente de l'ordinateur";
+						if (!fini){
 							waitForComputer();
 						}
 						else{
@@ -113,9 +131,30 @@
 				document.getElementById(data['IA']).disabled= true;
 		})
 	})};
+	chooseTurn = function(){
+		console.log( this.id );
+		$.ajax({
+		url: 'puissance4/ajax/setTour/',
+		data: {
+		  'tour': this.id 
+		},
+		dataType: 'json',
+		success: (function(data) {
+			for( i = 0; i < OrdreJeu.length; i++)
+				document.getElementById(OrdreJeu[i]).disabled = false;
+			if(data['futurTour']){
+				document.getElementById(data['futurTour']).disabled= true;
+				document.getElementById('futurTour').innerHTML= "A la prochaine partie vous jouerais en <span class='font-weight-bold'>" + data['futurTour'] +"</span>"; 
+			}
+		})
+	})};
 	var IAs =["aleatoire", "basique", "simple", "dnn"]
 	var i;
 	for( i = 0; i < IAs.length; i++)
 		document.getElementById(IAs[i]).onclick= chooseIA;
+		
+	var OrdreJeu =["premier", "second"]
+	for( i = 0; i < OrdreJeu.length; i++)
+		document.getElementById(OrdreJeu[i]).onclick= chooseTurn;
 	
 	refresh();
